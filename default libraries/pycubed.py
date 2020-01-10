@@ -1,17 +1,27 @@
 """
 CircuitPython driver for PyCubed satellite board
 
+PyCubed mainboard-v04
+
 * Author(s): Max Holliday
+
+TODO
+- implement new IMU (BMX160)
+- improve burn wire handling & syntax
+- 
+
 """
-import adafruit_lsm9ds1
 import adafruit_gps
 import adafruit_sdcard
 import adafruit_rfm9x
 import board, microcontroller
-import busio
+import busio, time
 import digitalio
 import analogio
 import storage, sys
+import pulseio, neopixel
+import bq25883
+import adm1176
 
 class Satellite:
     def __init__(self):
@@ -20,52 +30,67 @@ class Satellite:
         """
         self.hardware = {
                        'IMU':    False,
-                       'radio':  False,
+                       'Radio1': False,
+                       'Radio2': False,
                        'SDcard': False,
                        'GPS':    False,
                        'MRAM':   False,
                        'WDT':    False,
+                       'USB':    False,
+                       'PWR':    False,
                        }
-
-        # Define LEDs:
-        self._led = digitalio.DigitalInOut(board.LED)
-        self._led.switch_to_output()
 
         # Define burn wires:
         self._relayA = digitalio.DigitalInOut(board.RELAY_A)
-        self._relayB = digitalio.DigitalInOut(board.RELAY_B)        
         self._relayA.switch_to_output()
-        self._relayB.switch_to_output()
         self._deployA = False
-        self._deployB = False  
 
         # Define battery voltage
         self._vbatt = analogio.AnalogIn(board.BATTERY)
 
-        # Define battery charge current
+        # Define MPPT charge current measurement
         self._ichrg = analogio.AnalogIn(board.L1PROG)
-
-        # Define battery current draw
-        self._idraw = analogio.AnalogIn(board.IBATT)
         
         # Define SPI,I2C,UART
-        self._i2c = busio.I2C(board.SCL,board.SDA)
+        self._i2c  = busio.I2C(board.SCL,board.SDA)
         self._spi  = busio.SPI(board.SCK,MOSI=board.MOSI,MISO=board.MISO)
-        self._uart = busio.UART(board.TX,board.RX)
+        self._uart = busio.UART(board.TX,board.RX, baudrate=115200, timeout=100)
 
         # Define MRAM (manual-mode)
-        self._mram_cs = digitalio.DigitalInOut(microcontroller.pin.PB11)
-        self._mram_cs.switch_to_output(value=True)
+        # self._mram_cs = digitalio.DigitalInOut(microcontroller.pin.PB11)
+        # self._mram_cs.switch_to_output(value=True)
 
+        # Initialize Neopixel
+        try:
+            self.neopixel = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2, pixel_order=neopixel.GRB)
+            self.neopixel[0] = (0,0,0)
+            self.hardware['Neopixel'] = True
+        except Exception as e:
+            print('[WARNING][Neopixel]',e)
+
+        # Initialize USB charger
+        try: 
+            self.usb = bq25883.BQ25883(self._i2c)
+            self.usb.charging = False
+            self.usb.wdt = False
+            self.usb.led=False
+            self.hardware['USB'] = True
+        except Exception as e:
+            print('[ERROR][USB Charger]',e)
+    
         # Define sdcard
         self._sdcs = digitalio.DigitalInOut(board.xSDCS)
         self._sdcs.switch_to_output(value=True)
 
         # Define radio
-        self._rf_cs = digitalio.DigitalInOut(board.RF_CS)
-        self._rf_rst = digitalio.DigitalInOut(board.RF_RST)
-        self._rf_cs.switch_to_output(value=True)
-        self._rf_rst.switch_to_output(value=True)
+        self._rf_cs1 = digitalio.DigitalInOut(board.RF1_CS)
+        self._rf_rst1 = digitalio.DigitalInOut(board.RF1_RST)
+        self._rf_cs1.switch_to_output(value=True)
+        self._rf_rst1.switch_to_output(value=True)
+        self._rf_cs2 = digitalio.DigitalInOut(board.RF2_CS)
+        self._rf_rst2 = digitalio.DigitalInOut(board.RF2_RST)
+        self._rf_cs2.switch_to_output(value=True)
+        self._rf_rst2.switch_to_output(value=True)
 
         # Define GPS
         self._en_gps = digitalio.DigitalInOut(board.EN_GPS)
@@ -79,21 +104,34 @@ class Satellite:
             sys.path.append("/sd")
             self.hardware['SDcard'] = True
         except Exception as e:
-            print('[ERROR]',e)
+            print('[ERROR][SD Card]',e)
         
-        # Initialize IMU
+        # Initialize Power Monitor
         try:
-            self.IMU = adafruit_lsm9ds1.LSM9DS1_I2C(self._i2c)
-            self.hardware['IMU'] = True
+            self.pwr = adm1176.ADM1176(self._i2c)
+            self.pwr.sense_resistor = 0.025
+            self.hardware['PWR'] = True
         except Exception as e:
-            print('[ERROR]',e)
+            print('[ERROR][Power Monitor]',e)    
 
-        # Initialize radio
+        # Initialize IMU
+        # try:
+        #     self.IMU = bmx160.BMX160_I2C(self._i2c)
+        #     self.hardware['IMU'] = True
+        # except Exception as e:
+        #     print('[ERROR]',e)
+
+        # Initialize radio(s)
         try:
-            self.radio = adafruit_rfm9x.RFM9x(self._spi, self._rf_cs, self._rf_rst, 433.0)
-            self.hardware['Radio'] = True
+            self.radio1 = adafruit_rfm9x.RFM9x(self._spi, self._rf_cs1, self._rf_rst1, 433.0)
+            self.hardware['Radio1'] = True
         except Exception as e:
-            print('[ERROR]',e)
+            print('[ERROR][RADIO 1]',e)
+        try:
+            self.radio2 = adafruit_rfm9x.RFM9x(self._spi, self._rf_cs2, self._rf_rst2, 433.0)
+            self.hardware['Radio2'] = True
+        except Exception as e:
+            print('[ERROR][RADIO 2]',e)
 
         # Initialize GPS
         # try:
@@ -123,67 +161,65 @@ class Satellite:
         return microcontroller.cpu.temperature # Celsius 
 
     @property
-    def LED(self):
-        return self._led.value
-
-    @LED.setter
-    def LED(self,value):
-        self._led.value = value
+    def RGB(self):
+        return self.neopixel[0]
+    @RGB.setter
+    def RGB(self,value):
+        if self.hardware['Neopixel']:
+            try:
+                self.neopixel[0] = value
+            except Exception as e:
+                print('[WARNING]',e)
 
     @property
     def battery_voltage(self):
         _voltage = self._vbatt.value * 3.3 / (2 ** 16)
         _voltage = _voltage * (316/110) # 316/110 voltage divider
         return _voltage # in volts
+
+    @property
+    def system_voltage(self):
+        if self.hardware['PWR']:
+            try:
+                return self.pwr.read()[0] # in volts
+            except Exception as e:
+                print('[WARNING]',e)
+        else:
+            print('[WARNING] Power monitor not initialized')
+
+    @property
+    def current_draw(self):
+        if self.hardware['PWR']:
+            try:
+                return self.pwr.read()[1] # in mA
+            except Exception as e:
+                print('[WARNING]',e)
+        else:
+            print('[WARNING] Power monitor not initialized')
+
     @property
     def charge_current(self):
         _charge = self._ichrg.value * 3.3 / (2 ** 16)
         _charge = ((_charge*988)/6040)*1000 
         return _charge # in mA
+
     @property
-    def current_draw(self):
-        _draw = self._idraw.value * 3.3 / (2 ** 16)
-        _draw = _draw*1000 
-        return _draw # in mA
-    @property
-    def deploy(self):
-        return (self._deployA,self._deployB)
-    @deploy.setter
-    def deploy(self,burnA,burnB,delay):
-        if burnA:
-            if not self._deployA:
-                self._burn1 = digitalio.DigitalInOut(board.BURN1)
-                self._burn2 = digitalio.DigitalInOut(board.BURN2)
-                self._burn1.switch_to_output()
-                self._burn2.switch_to_output()
-                self._relayA.value = 1
-                time.sleep(1)
-                self._burn1.value  = 1
-                self._burn2.value  = 1
-                time.sleep(delay)
-                self._burn1.value  = 0
-                self._burn2.value  = 0
-                self._relayA.value = 0
-                self._deployA = True
-        if burnB:
-            if not self._deployB:
-                self._burn3 = digitalio.DigitalInOut(board.BURN3)
-                self._burn4 = digitalio.DigitalInOut(board.BURN4)
-                self._burn5 = digitalio.DigitalInOut(board.BURN5)  
-                self._burn3.switch_to_output()
-                self._burn4.switch_to_output()
-                self._burn5.switch_to_output()
-                self._relayB.value = 1
-                time.sleep(1)
-                self._burn3.value  = 1
-                self._burn4.value  = 1
-                self._burn5.value  = 1
-                time.sleep(delay)
-                self._burn3.value  = 0
-                self._burn4.value  = 0
-                self._burn5.value  = 0
-                self._relayB.value = 0
-                self._deployB = True
-        return (self._deployA,self._deployB)
+    def reset_boot_count(self):
+        microcontroller.nvm[0]=0
+    
+    # this deployment function is a placeholder
+    def deploy(self,burnA=False,dutycycle=0,freq=5000,duration=1):
+        print('BURNING with duty cycle of:',dutycycle)
+        # if not self._deployA:
+        burn = pulseio.PWMOut(board.PA22, frequency=freq, duty_cycle=0)
+        self._relayA.value = 1
+        time.sleep(1)
+        burn.duty_cycle=dutycycle
+        time.sleep(duration)
+        self._relayA.value = 0
+        burn.duty_cycle=0
+        self._deployA = True
+        burn.deinit()
+        return self._deployA
          
 cubesat = Satellite()
