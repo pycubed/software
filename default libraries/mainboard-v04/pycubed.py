@@ -28,7 +28,6 @@ class Satellite:
         """
         Big init routine as the whole board is brought up. 
         """
-        self.Debug = True
         self.hardware = {
                        'IMU':    False,
                        'Radio1': False,
@@ -90,9 +89,9 @@ class Satellite:
         # Initialize USB charger
         try: 
             self.usb = bq25883.BQ25883(self.i2c)
-            self.usb.charging = True # turning this off will shut off the board w/o a battery
-            self.usb.wdt = True
-            self.usb.led=True
+            self.usb.charging = False
+            self.usb.wdt = False
+            self.usb.led=False
             self.hardware['USB'] = True
         except Exception as e:
             print('[ERROR][USB Charger]',e)        
@@ -127,12 +126,12 @@ class Satellite:
             self.radio1 = adafruit_rfm9x.RFM9x(self.spi, self._rf_cs1, self._rf_rst1, 433.0)
             self.hardware['Radio1'] = True
         except Exception as e:
-            print('[WARNING][RADIO #1]',e)
+            print('[ERROR][RADIO 1]',e)
         try:
             self.radio2 = adafruit_rfm9x.RFM9x(self.spi, self._rf_cs2, self._rf_rst2, 433.0)
             self.hardware['Radio2'] = True
         except Exception as e:
-            print('[WARNING][RADIO #2]',e)
+            print('[ERROR][RADIO 2]',e)
 
         # Initialize GPS
         # try:
@@ -160,18 +159,6 @@ class Satellite:
     @property
     def temperature_cpu(self):
         return microcontroller.cpu.temperature # Celsius 
-
-    @property
-    def debug(self):
-        return self.Debug
-    @debug.setter
-    def debug(self,value):
-        if value:
-            self.Debug = True
-            print('[debug] debugging output enabled')
-        if not value:
-            self.Debug = False
-            print('[debug] debugging output disabled')
 
     @property
     def RGB(self):
@@ -240,15 +227,6 @@ class Satellite:
             print('--- SD card error ---', e)
             self.RGB = (255,0,0)
             return False
-
-    def print_file(self,filedir):
-        try:
-            print('--- Printing File: {} ---'.format(filedir))
-            with open(filedir, "r") as file:
-                for line in file:
-                    print(line.strip())
-        except Exception as e:
-            print('[WARNING]',e)
 
     def save(self, dataset, savefile=None):
         if savefile == None:
