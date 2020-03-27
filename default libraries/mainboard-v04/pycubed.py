@@ -22,6 +22,7 @@ import storage, sys
 import pulseio, neopixel
 import bq25883
 import adm1176
+import bmx160
 
 class Satellite:
     def __init__(self):
@@ -115,11 +116,11 @@ class Satellite:
             print('[ERROR][Power Monitor]',e)    
 
         # Initialize IMU
-        # try:
-        #     self.IMU = bmx160.BMX160_I2C(self.i2c)
-        #     self.hardware['IMU'] = True
-        # except Exception as e:
-        #     print('[ERROR]',e)
+        try:
+            self.IMU = bmx160.BMX160_I2C(self.i2c)
+            self.hardware['IMU'] = True
+        except Exception as e:
+            print('[ERROR]',e)
 
         # Initialize radio(s)
         try:
