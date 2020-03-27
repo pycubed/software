@@ -6,7 +6,6 @@ PyCubed mainboard-v04
 * Author(s): Max Holliday
 
 TODO
-- implement new IMU (BMX160)
 - improve burn wire handling & syntax
 - 
 
@@ -143,11 +142,11 @@ class Satellite:
         
     @property
     def acceleration(self):
-        return self.IMU.acceleration
+        return self.IMU.accel
 
     @property
     def magnetic(self):
-        return self.IMU.magnetic
+        return self.IMU.mag
 
     @property
     def gyro(self):
