@@ -32,7 +32,9 @@ class ADM1176:
 
         self.config('V_CONT,I_CONT')
     _cmd=bytearray(1)
-    _cmd[0] = 0b0000000
+    _cmd[0] = 0x00
+    _extcmd=bytearray(2)
+    _extcmd[0] = 0x83
 
     _BUFFER = bytearray(3)
     _STATUS = bytearray(1)
@@ -48,15 +50,26 @@ class ADM1176:
         if 'VRANGE' in value:
             self._cmd[0] |= (1<<4)
         with self.i2c_device as i2c:
-            i2c.write(self._cmd, end=1, stop=True)
+            i2c.write(self._cmd)
 
     def read(self):
         with self.i2c_device as i2c:
             i2c.readinto(self._BUFFER)
         raw_voltage = ((self._BUFFER[0]<<8) | (self._BUFFER[2]&DATA_V_MASK))>>4
-        raw_current = (self._BUFFER[1]<<8) | (self._BUFFER[2]&DATA_I_MASK)
+        raw_current = (self._BUFFER[1]<<4) | (self._BUFFER[2]&DATA_I_MASK)
         _voltage = (26.35/4096)*raw_voltage # volts
         _current = ((0.10584/4096)*raw_current)/self.sense_resistor # amperes
         return (_voltage,_current)
 
+    @property
+    def OFF(self):
+        self._extcmd[1]=1
+        with self.i2c_device as i2c:
+            i2c.write(self._extcmd)
 
+    @property
+    def ON(self):
+        self._extcmd[1]=0
+        with self.i2c_device as i2c:
+            i2c.write(self._extcmd)
+        self.config('V_CONT,I_CONT')
