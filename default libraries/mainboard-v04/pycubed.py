@@ -92,6 +92,7 @@ class Satellite:
             self.usb.charging = False
             self.usb.wdt = False
             self.usb.led=False
+            self.usb_charging=False
             self.hardware['USB'] = True
         except Exception as e:
             print('[ERROR][USB Charger]',e)        
@@ -170,6 +171,15 @@ class Satellite:
                 self.neopixel[0] = value
             except Exception as e:
                 print('[WARNING]',e)
+    
+    @property
+    def charge_batteries(self):
+        return self.usb_charging
+    @charge_batteries.setter
+    def charge_batteries(self,value):
+        self.usb_charging=value
+        self.usb.led=value
+        self.usb.charging=value
 
     @property
     def battery_voltage(self):
@@ -225,7 +235,7 @@ class Satellite:
                         time.sleep(0.01)
                     self.filename = '/sd/'+_filename
                     print('filename is:',self.filename)
-                    return True                                  
+                    return True
         except Exception as e:
             print('--- SD card error ---', e)
             self.RGB = (255,0,0)
@@ -245,7 +255,7 @@ class Satellite:
                     file.write('\n')
         except Exception as e:
             print(e)
-    
+
     # this deployment function is a placeholder
     def deploy(self,burnA=False,dutycycle=0,freq=5000,duration=1):
         print('BURNING with duty cycle of:',dutycycle)
