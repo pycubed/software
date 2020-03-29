@@ -42,7 +42,7 @@ class Satellite:
 
         # Define burn wires:
         self._relayA = digitalio.DigitalInOut(board.RELAY_A)
-        self._relayA.switch_to_output()
+        self._relayA.switch_to_output(drive_mode=digitalio.DriveMode.OPEN_DRAIN)
         self._deployA = False
 
         # Define battery voltage
@@ -80,7 +80,7 @@ class Satellite:
 
         # Initialize Neopixel
         try:
-            self.neopixel = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2, pixel_order=neopixel.GRB)
+            self.neopixel = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2, pixel_order=neopixel.GRBW)
             self.neopixel[0] = (0,0,0)
             self.hardware['Neopixel'] = True
         except Exception as e:
@@ -175,13 +175,13 @@ class Satellite:
     def battery_voltage(self):
         _voltage = self._vbatt.value * 3.3 / (2 ** 16)
         _voltage = _voltage * (316/110) # 316/110 voltage divider
-        return _voltage # in volts
+        return _voltage # volts
 
     @property
     def system_voltage(self):
         if self.hardware['PWR']:
             try:
-                return self.pwr.read()[0] # in volts
+                return self.pwr.read()[0] # volts
             except Exception as e:
                 print('[WARNING]',e)
         else:
@@ -190,8 +190,11 @@ class Satellite:
     @property
     def current_draw(self):
         if self.hardware['PWR']:
+            idraw=0
             try:
-                return self.pwr.read()[1] # in mA
+                for _ in range(50): # average 50 readings
+                    idraw+=self.pwr.read()[1]
+                return (idraw/50)*1000 # mA
             except Exception as e:
                 print('[WARNING]',e)
         else:
@@ -201,7 +204,7 @@ class Satellite:
     def charge_current(self):
         _charge = self._ichrg.value * 3.3 / (2 ** 16)
         _charge = ((_charge*988)/6040)*1000 
-        return _charge # in mA
+        return _charge # mA
 
     @property
     def reset_boot_count(self):
@@ -248,6 +251,7 @@ class Satellite:
         print('BURNING with duty cycle of:',dutycycle)
         # if not self._deployA:
         burn = pulseio.PWMOut(board.PA22, frequency=freq, duty_cycle=0)
+        self._relayA.drive_mode=digitalio.DriveMode.PUSH_PULL
         self._relayA.value = 1
         time.sleep(1)
         burn.duty_cycle=dutycycle
@@ -256,6 +260,7 @@ class Satellite:
         burn.duty_cycle=0
         self._deployA = True
         burn.deinit()
+        self._relayA.drive_mode=digitalio.DriveMode.OPEN_DRAIN
         return self._deployA
          
 cubesat = Satellite()
