@@ -237,7 +237,7 @@ class Satellite:
                     print('filename is:',self.filename)
                     return True
         except Exception as e:
-            print('--- SD card error ---', e)
+            print('[ERROR] Unique File:', e)
             self.RGB = (255,0,0)
             return False
 
@@ -253,8 +253,11 @@ class Satellite:
                         else:
                             file.write('{},'.format(i))
                     file.write('\n')
+            return True
         except Exception as e:
-            print(e)
+            print('[ERROR] SD Save:', e)
+            self.RGB = (255,0,0)
+            return False
 
     # this deployment function is a placeholder
     def deploy(self,burnA=False,dutycycle=0,freq=5000,duration=1):
