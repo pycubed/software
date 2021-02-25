@@ -14,47 +14,46 @@ Implementation Notes
 from micropython import const
 from adafruit_bus_device.i2c_device import I2CDevice
 
-from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
 from adafruit_register.i2c_bits import ROBits, RWBits
-from adafruit_register.i2c_bit import ROBit, RWBit
+from adafruit_register.i2c_bit import RWBit
 
 
 # Registers
 _BATV_LIM       = const(0x00)
-_CHRGI_LIM      = const(0x01) 
-_VIN_LIM        = const(0x02) 
-_IIN_LIM        = const(0x03) 
-_TERM_CTRL      = const(0x04) 
-_CHRGR_CRTL1    = const(0x05) 
-_CHRGR_CRTL2    = const(0x06) 
-_CHRGR_CRTL3    = const(0x07) 
-_CHRGR_CRTL4    = const(0x08) 
-_OTG_CTRL       = const(0x09) 
-_ICO_LIM        = const(0x0A) 
-_CHRG_STAT1     = const(0x0B) 
-_CHRG_STAT2     = const(0x0C) 
-_NTC_STAT       = const(0x0D) 
+_CHRGI_LIM      = const(0x01)
+_VIN_LIM        = const(0x02)
+_IIN_LIM        = const(0x03)
+_TERM_CTRL      = const(0x04)
+_CHRGR_CRTL1    = const(0x05)
+_CHRGR_CRTL2    = const(0x06)
+_CHRGR_CRTL3    = const(0x07)
+_CHRGR_CRTL4    = const(0x08)
+_OTG_CTRL       = const(0x09)
+_ICO_LIM        = const(0x0A)
+_CHRG_STAT1     = const(0x0B)
+_CHRG_STAT2     = const(0x0C)
+_NTC_STAT       = const(0x0D)
 _FAULT_STAT     = const(0x0E)
-_CHRGR_FLAG1    = const(0x0F) 
-_CHRGR_FLAG2    = const(0x10) 
-_FAULT_FLAG     = const(0x11) 
-_CHRGR_MSK1     = const(0x12) 
-_CHRGR_MSK2     = const(0x13) 
-_FAULT_MSK      = const(0x14) 
+_CHRGR_FLAG1    = const(0x0F)
+_CHRGR_FLAG2    = const(0x10)
+_FAULT_FLAG     = const(0x11)
+_CHRGR_MSK1     = const(0x12)
+_CHRGR_MSK2     = const(0x13)
+_FAULT_MSK      = const(0x14)
 _ADC_CTRL       = const(0x15)
-_ADC_FN_CTRL    = const(0x16) 
-_IBUS_ADC1      = const(0x17) 
-_IBUS_ADC0      = const(0x18) 
-_ICHG_ADC1      = const(0x19) 
-_ICHG_ADC0      = const(0x1A) 
-_VBUS_ADC1      = const(0x1B) 
+_ADC_FN_CTRL    = const(0x16)
+_IBUS_ADC1      = const(0x17)
+_IBUS_ADC0      = const(0x18)
+_ICHG_ADC1      = const(0x19)
+_ICHG_ADC0      = const(0x1A)
+_VBUS_ADC1      = const(0x1B)
 _VBUS_ADC0      = const(0x1C)
-_VBAT_ADC1      = const(0x1D) 
-_VBAT_ADC0      = const(0x1E) 
-_VSYS_ADC1      = const(0x1F) 
-_VSYS_ADC0      = const(0x20) 
-_TS_ADC1        = const(0x21) 
-_TS_ADC0        = const(0x22) 
+_VBAT_ADC1      = const(0x1D)
+_VBAT_ADC0      = const(0x1E)
+_VSYS_ADC1      = const(0x1F)
+_VSYS_ADC0      = const(0x20)
+_TS_ADC1        = const(0x21)
+_TS_ADC0        = const(0x22)
 _TDIE_ADC1      = const(0x23)
 _TDIE_ADC0      = const(0x24)
 _PART_INFO      = const(0x25)
@@ -87,18 +86,18 @@ class BQ25883:
 
     @property
     def status(self):
-        print('Fault:',bin(self._fault_status))   
+        print('Fault:',bin(self._fault_status))
         print('Charger Status 1:',bin(self._chrgr_status1))
         print('Charger Status 2:',bin(self._chrgr_status2))
-        print('Charge Status:',bin(self._chrg_status))  
-        print('Charge Control2:',bin(self._chrg_ctrl2))  
-        print('NTC Status:',bin(self._ntc_stat))  
+        print('Charge Status:',bin(self._chrg_status))
+        print('Charge Control2:',bin(self._chrg_ctrl2))
+        print('NTC Status:',bin(self._ntc_stat))
         print('OTG:',hex(self._otg_ctrl))
 
 
     @property
     def charging(self):
-        print('Charge Control2:',bin(self._chrg_ctrl2))    
+        print('Charge Control2:',bin(self._chrg_ctrl2))
     @charging.setter
     def charging(self,value):
         assert type(value) == bool
@@ -106,7 +105,7 @@ class BQ25883:
 
     @property
     def wdt(self):
-        print('Watchdog Timer:',bin(self._wdt))    
+        print('Watchdog Timer:',bin(self._wdt))
     @wdt.setter
     def wdt(self,value):
         if not value:
@@ -116,7 +115,7 @@ class BQ25883:
 
     @property
     def led(self):
-        print('Status LED:',bin(self._stat_dis))    
+        print('Status LED:',bin(self._stat_dis))
     @led.setter
     def led(self,value):
         assert type(value) == bool

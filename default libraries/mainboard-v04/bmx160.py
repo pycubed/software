@@ -1,15 +1,11 @@
 import time
-try:
-    import struct
-except ImportError:
-    import ustruct as struct
 
 from adafruit_bus_device.i2c_device import I2CDevice
 from adafruit_bus_device.spi_device import SPIDevice
 from micropython import const
-from adafruit_register.i2c_struct import Struct, UnaryStruct
+from adafruit_register.i2c_struct import Struct
 from adafruit_register.i2c_bits import ROBits, RWBits
-from adafruit_register.i2c_bit import ROBit, RWBit
+from adafruit_register.i2c_bit import ROBit
 
 # Chip ID
 BMX160_CHIP_ID = const(0xD8)
@@ -687,11 +683,11 @@ def find_nearest_valid(desired, possible_values):
     except:
         return -1
 
-def settingswarning(interp = ""):
+def settingswarning(interp=""):
     if interp != "":
-            interp = " --"  + interp + " -- "
+        interp = " --"  + interp + " -- "
     print("BMX160 error occurred during " + interp +
-         "setting change. \nSetting not successfully changed and BMX160 may be in error state.")
+          "setting change. \nSetting not successfully changed and BMX160 may be in error state.")
 
 
 def format_binary(b):

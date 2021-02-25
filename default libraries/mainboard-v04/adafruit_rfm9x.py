@@ -47,7 +47,6 @@ __version__ = "1.1.7"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_RFM9x.git"
 
 
-# pylint: disable=bad-whitespace
 # Internal constants:
 # Register names (FSK Mode even though we use LoRa instead, from table 85)
 _RH_RF95_REG_00_FIFO                              = const(0x00)
@@ -233,7 +232,6 @@ FS_TX_MODE   = 0b010
 TX_MODE      = 0b011
 FS_RX_MODE   = 0b100
 RX_MODE      = 0b101
-# pylint: enable=bad-whitespace
 
 
 # Disable the too many instance members warning.  Pylint has no knowledge

@@ -10,7 +10,7 @@ TODO
 - 
 
 """
-import adafruit_gps
+#import adafruit_gps
 import adafruit_sdcard
 import adafruit_rfm9x
 import board, microcontroller
@@ -84,7 +84,7 @@ class Satellite:
             self.neopixel[0] = (0,0,0)
             self.hardware['Neopixel'] = True
         except Exception as e:
-            print('[WARNING][Neopixel]',e)
+            print('[WARNING][Neopixel]', e)
 
         # Initialize USB charger
         try: 
@@ -95,7 +95,7 @@ class Satellite:
             self.usb_charging=False
             self.hardware['USB'] = True
         except Exception as e:
-            print('[ERROR][USB Charger]',e)        
+            print('[ERROR][USB Charger]', e)        
 
         # Initialize sdcard
         try:
@@ -105,7 +105,7 @@ class Satellite:
             sys.path.append("/sd")
             self.hardware['SDcard'] = True
         except Exception as e:
-            print('[ERROR][SD Card]',e)
+            print('[ERROR][SD Card]', e)
         
         # Initialize Power Monitor
         try:
@@ -113,26 +113,26 @@ class Satellite:
             self.pwr.sense_resistor = 1
             self.hardware['PWR'] = True
         except Exception as e:
-            print('[ERROR][Power Monitor]',e)    
+            print('[ERROR][Power Monitor]', e)    
 
         # Initialize IMU
         try:
             self.IMU = bmx160.BMX160_I2C(self.i2c)
             self.hardware['IMU'] = True
         except Exception as e:
-            print('[ERROR]',e)
+            print('[ERROR]', e)
 
         # Initialize radio(s)
         try:
             self.radio1 = adafruit_rfm9x.RFM9x(self.spi, self._rf_cs1, self._rf_rst1, 433.0)
             self.hardware['Radio1'] = True
         except Exception as e:
-            print('[ERROR][RADIO 1]',e)
+            print('[ERROR][RADIO 1]', e)
         try:
             self.radio2 = adafruit_rfm9x.RFM9x(self.spi, self._rf_cs2, self._rf_rst2, 433.0)
             self.hardware['Radio2'] = True
         except Exception as e:
-            print('[ERROR][RADIO 2]',e)
+            print('[ERROR][RADIO 2]', e)
 
         # Initialize GPS
         # try:
@@ -227,14 +227,14 @@ class Satellite:
             return False
         try:
             name = 'DATA_000'
-            files = []
+
             for i in range(0,50):
                 _filename = name[:-2]+str(int(i/10))+str(int(i%10))+'.txt'
                 if _filename not in os.listdir('/sd/'):
-                    with open('/sd/'+_filename, "a") as f:
+                    with open('/sd/'+_filename, "a"):
                         time.sleep(0.01)
                     self.filename = '/sd/'+_filename
-                    print('filename is:',self.filename)
+                    print('filename is:', self.filename)
                     return True
         except Exception as e:
             print('[ERROR] Unique File:', e)
@@ -260,7 +260,7 @@ class Satellite:
             return False
 
     # this deployment function is a placeholder
-    def deploy(self,burnA=False,dutycycle=0,freq=5000,duration=1):
+    def deploy(self, burnA=False, dutycycle=0, freq=5000, duration=1):
         print('BURNING with duty cycle of:',dutycycle)
         # if not self._deployA:
         burn = pulseio.PWMOut(board.PA22, frequency=freq, duty_cycle=0)
