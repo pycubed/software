@@ -1,0 +1,3 @@
+[submodule "pycubed.py"]
+	path = pycubed.py
+	url = https://github.com/pycubed/library_pycubed.py.git
