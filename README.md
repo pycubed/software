@@ -1,7 +1,8 @@
 # Software 💾
-Example code demonstrating routine cubesat functions
+Default files for PyCubed boards. Everything you need to restore the software back to working condition.
 
-## [⭐ See the PyCubed Quick Start page for tutorials, design resources, and more!](https://www.notion.so/maholli/PyCubed-4cbfac7e9b684852a2ab2193bd485c4d)
+## [All PyCubed Resources](https://www.notion.so/maholli/All-PyCubed-Resources-8738cab0dd0743239a3cde30c6066452)
+Tutorials, design resources, and more!
 <br>
 <br>
 <br>
