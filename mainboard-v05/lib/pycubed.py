@@ -59,6 +59,7 @@ class Satellite:
         """
         self.BOOTTIME= const(time.time())
         self.data_cache={}
+        self.filenumbers={}
         self.vlowbatt=6.0
         self.send_buff = memoryview(SEND_BUFF)
         self.debug=True
@@ -103,7 +104,7 @@ class Satellite:
         _rf_rst1 = digitalio.DigitalInOut(board.RF1_RST)
         self.enable_rf = digitalio.DigitalInOut(board.EN_RF)
         self.radio1_DIO0=digitalio.DigitalInOut(board.RF1_IO0)
-        self.enable_rf.switch_to_output(value=False)
+        self.enable_rf.switch_to_output(value=True)
         _rf_cs1.switch_to_output(value=True)
         _rf_rst1.switch_to_output(value=True)
         self.radio1_DIO0.switch_to_input()
@@ -172,7 +173,7 @@ class Satellite:
             # Frequency: 433 MHz, SF7, BW125kHz, CR4/8, Preamble=8, CRC=True
             self.radio1.dio0=self.radio1_DIO0
             self.radio1.enable_crc=True
-            self.radio1.tx_power=13
+            self.radio1.ack_delay=0.2
             self.radio1.sleep()
             self.hardware['Radio1'] = True
         except Exception as e:
@@ -358,4 +359,39 @@ class Satellite:
             self.power_mode = 'normal'
             # don't forget to reconfigure radios, gps, etc...
 
+    def new_file(self,substring,binary=False):
+        '''
+        substring something like '/data/DATA_'
+        directory is created on the SD!
+        int padded with zeros will be appended to the last found file
+        '''
+        if self.hardware['SDcard']:
+            ff=''
+            n=0
+            _folder=substring[:substring.rfind('/')+1]
+            _file=substring[substring.rfind('/')+1:]
+            print('Creating new file in directory: /sd{} with file prefix: {}'.format(_folder,_file))
+            try: chdir('/sd'+_folder)
+            except OSError:
+                print('Directory {} not found. Creating...'.format(_folder))
+                try: mkdir('/sd'+_folder)
+                except Exception as e:
+                    print(e)
+                    return None
+            for i in range(0xFFFF):
+                ff='/sd{}{}{:05}.txt'.format(_folder,_file,(n+i)%0xFFFF)
+                try:
+                    if n is not None:
+                        stat(ff)
+                except:
+                    n=(n+i)%0xFFFF
+                    # print('file number is',n)
+                    break
+            print('creating file...',ff)
+            if binary: b='ab'
+            else: b='a'
+            with open(ff,b) as f:
+                f.tell()
+            chdir('/')
+            return ff
 cubesat = Satellite()

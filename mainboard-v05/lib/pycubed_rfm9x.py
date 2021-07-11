@@ -415,15 +415,6 @@ class RFM9x:
             self.low_datarate_optimize = True
         return success
 
-
-    def toggle(self,tx=False,rx=False):
-        if tx:
-            self.txrx[0].value=True
-            self.txrx[1].value=False
-        elif rx:
-            self.txrx[0].value=False
-            self.txrx[1].value=True
-
     # pylint: disable=no-member
     # Reconsider pylint: disable when this can be tested
     def _read_into(self, address, buf, length=None):
@@ -556,6 +547,7 @@ class RFM9x:
     def tx_power(self, val):
         val = int(val)
         if self.max_output is True:
+            print('RFM9X Max Output Power Enabled')
             self._write_u8(_RH_RF95_REG_0B_OCP,0x3F) # set Ocp to 240mA
             self.pa_dac = _RH_RF95_PA_DAC_ENABLE
             self.pa_select = True
