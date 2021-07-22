@@ -11,7 +11,7 @@ import board, microcontroller
 import busio, time, sys
 from storage import mount,umount,VfsFat
 from analogio import AnalogIn
-import digitalio, sdcardio, tasko
+import digitalio, sdcardio, pwmio, tasko
 
 # Hardware Specific Libs
 import pycubed_rfm9x # Radio
@@ -394,4 +394,48 @@ class Satellite:
                 f.tell()
             chdir('/')
             return ff
+
+    def burn(self,burn_num,dutycycle=0,freq=1000,duration=1):
+        """
+        Operate burn wire circuits. Wont do anything unless the a nichrome burn wire
+        has been installed.
+
+        IMPORTANT: See "Burn Wire Info & Usage" of https://pycubed.org/resources
+        before attempting to use this function!
+
+        burn_num:  (string) which burn wire circuit to operate, must be either '1' or '2'
+        dutycycle: (float) duty cycle percent, must be 0.0 to 100
+        freq:      (float) frequency in Hz of the PWM pulse, default is 1000 Hz
+        duration:  (float) duration in seconds the burn wire should be on
+        """
+        # convert duty cycle % into 16-bit fractional up time
+        dtycycl=int((dutycycle/100)*(0xFFFF))
+        print('----- BURN WIRE CONFIGURATION -----')
+        print('\tFrequency of: {}Hz\n\tDuty cycle of: {}% (int:{})\n\tDuration of {}sec'.format(freq,(100*dtycycl/0xFFFF),dtycycl,duration))
+        # create our PWM object for the respective pin
+        # not active since duty_cycle is set to 0 (for now)
+        if '1' in burn_num:
+            burnwire = pwmio.PWMOut(board.BURN1, frequency=freq, duty_cycle=0)
+        elif '2' in burn_num:
+            burnwire = pwmio.PWMOut(board.BURN2, frequency=freq, duty_cycle=0)
+        else:
+            return False
+        # Configure the relay control pin & open relay
+        self._relayA.drive_mode=digitalio.DriveMode.PUSH_PULL
+        self._relayA.value = 1
+        self.RGB=(255,0,0)
+        # Pause to ensure relay is open
+        time.sleep(0.5)
+        # Set the duty cycle over 0%
+        # This starts the burn!
+        burnwire.duty_cycle=dtycycl
+        time.sleep(duration)
+        # Clean up
+        self._relayA.value = 0
+        burnwire.duty_cycle=0
+        self.RGB=(0,0,0)
+        burnwire.deinit()
+        self._relayA.drive_mode=digitalio.DriveMode.OPEN_DRAIN
+        return True
+
 cubesat = Satellite()

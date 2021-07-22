@@ -9,7 +9,7 @@ from pycubed import cubesat
 import time
 
 cubesat.neopixel.auto_write=False
-cubesat.neopixel.brightness=1
+# cubesat.neopixel.brightness=1
 
 def wheel(pos):
     if pos < 0 or pos > 255:
