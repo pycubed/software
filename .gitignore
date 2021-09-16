@@ -1,0 +1,4 @@
+*.bak
+*.kicad_pcb-bak
+
+/quality_control/*
