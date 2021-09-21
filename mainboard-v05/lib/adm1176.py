@@ -36,6 +36,7 @@ class ADM1176:
         self.config('V_CONT,I_CONT')
 
     def config(self, value):
+        _cmd[0]=0
         if 'V_CONT' in value:
             _cmd[0] |= (1<<0)
         if 'V_ONCE' in value:

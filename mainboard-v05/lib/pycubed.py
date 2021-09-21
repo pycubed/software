@@ -104,8 +104,7 @@ class Satellite:
         _rf_rst1 = digitalio.DigitalInOut(board.RF1_RST)
         self.enable_rf = digitalio.DigitalInOut(board.EN_RF)
         self.radio1_DIO0=digitalio.DigitalInOut(board.RF1_IO0)
-        self.enable_rf.switch_to_output(value=True) # if U7
-        # self.enable_rf.switch_to_output(value=False) # if U21
+        self.enable_rf.switch_to_output(value=True) # disabled
         _rf_cs1.switch_to_output(value=True)
         _rf_rst1.switch_to_output(value=True)
         self.radio1_DIO0.switch_to_input()
@@ -291,13 +290,14 @@ class Satellite:
     @property
     def reset_vbus(self):
         # unmount SD card to avoid errors
-        try:
-            umount('/sd')
-            self.spi.deinit()
-            time.sleep(3)
-        except Exception as e:
-            print('vbus reset error?', e)
-            pass
+        if self.hardware['SDcard']:
+            try:
+                umount('/sd')
+                self.spi.deinit()
+                time.sleep(3)
+            except Exception as e:
+                print('vbus reset error?', e)
+                pass
         self._resetReg.drive_mode=digitalio.DriveMode.PUSH_PULL
         self._resetReg.value=1
 
@@ -347,6 +347,8 @@ class Satellite:
                 self.IMU.gyro_powermode  = 0x14 # suspend mode
                 self.IMU.accel_powermode = 0x10 # suspend mode
                 self.IMU.mag_powermode   = 0x18 # suspend mode
+            if self.hardware['PWR']:
+                self.pwr.config('V_ONCE,I_ONCE')
             if self.hardware['GPS']:
                 self.en_gps.value = False
             self.power_mode = 'minimum'
@@ -355,6 +357,8 @@ class Satellite:
             self.enable_rf.value = True
             if self.hardware['IMU']:
                 self.reinit('IMU')
+            if self.hardware['PWR']:
+                self.pwr.config('V_CONT,I_CONT')
             if self.hardware['GPS']:
                 self.en_gps.value = True
             self.power_mode = 'normal'
