@@ -104,7 +104,8 @@ class Satellite:
         _rf_rst1 = digitalio.DigitalInOut(board.RF1_RST)
         self.enable_rf = digitalio.DigitalInOut(board.EN_RF)
         self.radio1_DIO0=digitalio.DigitalInOut(board.RF1_IO0)
-        self.enable_rf.switch_to_output(value=True) # disabled
+        # self.enable_rf.switch_to_output(value=False) # if U21
+        self.enable_rf.switch_to_output(value=True) # if U7
         _rf_cs1.switch_to_output(value=True)
         _rf_rst1.switch_to_output(value=True)
         self.radio1_DIO0.switch_to_input()
