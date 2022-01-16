@@ -146,7 +146,7 @@ class Satellite:
         # Initialize Power Monitor
         try:
             self.pwr = adm1176.ADM1176(self.i2c1)
-            self.pwr.sense_resistor = 1
+            self.pwr.sense_resistor = 0.1
             self.hardware['PWR'] = True
         except Exception as e:
             if self.debug: print('[ERROR][Power Monitor]',e)
