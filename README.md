@@ -7,4 +7,4 @@ Tutorials, design resources, and more!
 <br>
 <br>
 ## License
-Any software/firmware in this repository is licensed under MIT unless otherwise indicated
+- Software/firmware in this repository is licensed under MIT unless otherwise indicated
