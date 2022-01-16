@@ -6,5 +6,6 @@ Tutorials, design resources, and more!
 <br>
 <br>
 <br>
+
 ## License
-- Software/firmware in this repository is licensed under MIT unless otherwise indicated
+- Software/firmware in this repository is licensed under MIT unless otherwise indicated.
