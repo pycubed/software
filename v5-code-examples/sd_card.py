@@ -24,7 +24,7 @@ def print_directory(path, tabs = 0):
         prettyprintname += file
         if isdir:
             prettyprintname += "/"
-        print('{0:<40} Size: {1:>10}'.format(prettyprintname, sizestr))
+        print(f"{prettyprintname:<40} Size: {sizestr:>10}")
  
         # recursively print directory contents
         if isdir:
