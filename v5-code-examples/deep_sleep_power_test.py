@@ -10,15 +10,14 @@ PyCubed mainboardv05 deep-sleep power testing
 import alarm, time
 from lib.pycubed import cubesat
 
-print("Entering low power mode")
+print("Entering low power mode") 
 cubesat.powermode("minimum")
 
 # Blink RGB blue/green for ~5s to notify user
 cubesat.neopixel.brightness=0.2
 for _ in range(10):
     cubesat.RGB=(0,255,0)
-    time.sleep(0.5)
-    cubesat.RGB=(0,0,255)
+gith    cubesat.RGB=(0,0,255)
     time.sleep(0.5)
 # Turn RGB off
 cubesat.RGB=(0,0,0)
